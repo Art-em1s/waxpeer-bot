@@ -25,8 +25,12 @@ interface JsonTradeoffer {
     };
 }
 
-let reconnectAttemptsLeft: number = 5;
-let reconnectAttemptDelay: number[] = [0, 5000, 10000, 20000, 30000];
+
+// Reconnection configuration
+let reconnectAttempts: number = 0;
+const maxReconnectAttempts: number = 5;
+const minReconnectDelay: number = 1000; // 1 second
+const maxReconnectDelay: number = 60000; // 60 seconds
 let ws: WebSocket;
 
 async function handleSendTrade(data: any) {
@@ -81,7 +85,7 @@ function connect() {
             }));
         }, 25000);
 
-        reconnectAttemptsLeft = 5;
+        reconnectAttempts = 0;
     });
     
     ws.on('message', function message(data) {
@@ -97,8 +101,8 @@ function connect() {
     });
     
     ws.on('close', function close() {
-        if (reconnectAttemptsLeft > 0) {
-            let delay = reconnectAttemptDelay[5 - reconnectAttemptsLeft];
+        if (reconnectAttempts < maxReconnectAttempts) {
+            const delay = getReconnectDelay(reconnectAttempts);
 
             sendNotification(`Disconnected from Waxpeer WebSocket. Reconnecting in ${delay / 1000} seconds...`);
 
@@ -106,7 +110,7 @@ function connect() {
                 connect();
             }, delay);
 
-            reconnectAttemptsLeft--;
+            reconnectAttempts++;
         } else {
             sendNotification('Disconnected from Waxpeer WebSocket. Reconnecting failed.');
         }
@@ -117,6 +121,12 @@ function connect() {
         console.error(err);
     });
 }
+
+function getReconnectDelay(attempt: number): number {
+    const delay = Math.pow(2, attempt) * minReconnectDelay;
+    return Math.min(delay, maxReconnectDelay);
+}
+
 
 loginSteam();
 connect();
