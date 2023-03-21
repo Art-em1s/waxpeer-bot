@@ -3,9 +3,14 @@ import 'dotenv/config';
 
 function getCurrentTimestamp(): string {
     const now = new Date();
-    const date = now.toISOString().substring(0, 10).replace(/-/g, '-');
-    const time = now.toTimeString().substring(0, 8);
-    return `[${date} ${time}]`;
+    const dateString = now.toDateString(); // Format: "Mon Mar 21 2023"
+    const [_, month, day, year] = dateString.split(' ');
+
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const seconds = String(now.getSeconds()).padStart(2, '0');
+
+    return `[${day}-${month} ${hours}:${minutes}:${seconds}]`;
 }
 
 function logWithTimestamp(message: string) {
