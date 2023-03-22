@@ -80,10 +80,13 @@ function connect() {
         }));
     
         setInterval(() => {
-            ws.send(JSON.stringify({
-                "name": "ping",
-            }));
+            if (ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({
+                    "name": "ping",
+                }));
+            }
         }, 25000);
+
 
         reconnectAttempts = 0;
     });
